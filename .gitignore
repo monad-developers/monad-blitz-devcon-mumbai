@@ -5,3 +5,9 @@ contracts/broadcast/
 .env
 .env.*
 *.keystore
+android/.gradle/
+android/.kotlin/
+android/build/
+android/app/build/
+android/local.properties
+*.apk
