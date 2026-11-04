@@ -37,6 +37,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -249,6 +252,17 @@ private fun PieceGlyph(piece: Piece, squareDp: Float) {
     } + "︎"
     val isWhite = piece.pieceSide == Side.WHITE
     Box(contentAlignment = Alignment.Center) {
+        // A dark outline keeps white pieces readable on light squares.
+        if (isWhite) {
+            Text(
+                glyph,
+                fontSize = (squareDp * 0.78f).sp,
+                style = TextStyle(
+                    color = Color(0xFF17121F),
+                    drawStyle = Stroke(width = squareDp * 0.14f, join = StrokeJoin.Round),
+                ),
+            )
+        }
         Text(glyph, color = if (isWhite) Color.White else Color(0xFF17121F), fontSize = (squareDp * 0.78f).sp)
     }
 }

@@ -58,7 +58,8 @@ class ChessGame(private val clockMillis: Long = 60_000L) {
 
     /** Charges elapsed time to the side to move and ends the game when their flag falls. */
     fun tick(elapsedMillis: Long) {
-        if (end != null) return
+        // The clock starts once White has made the first move.
+        if (end != null || ply == 0) return
         if (sideToMove == Side.WHITE) whiteMillis = (whiteMillis - elapsedMillis).coerceAtLeast(0)
         else blackMillis = (blackMillis - elapsedMillis).coerceAtLeast(0)
         if (whiteMillis == 0L) end = GameEnd(Side.BLACK, EndReason.TIMEOUT)
