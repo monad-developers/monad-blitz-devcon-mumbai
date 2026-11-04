@@ -2,77 +2,86 @@
 
 **A tokenized data economy on Monad.** Every human contribution becomes a verified onchain asset, paid in real time.
 
-The first market is robot training data. Anyone with a phone controls a robot arm in a browser simulation. Each attempt that passes a physics check pays USDC instantly on Monad and mints a token for the dataset the player helped create. When the dataset is licensed, the fee is split among everyone who holds that token.
+The first market is a decentralised data-labelling network for physical AI. Anyone with a phone annotates robot recordings, meaning video together with sensor streams such as joint torque and contact force. They can also record robot demonstrations. Every contribution is checked against physics by three independent [Pyros](https://github.com/RudranshG07/pyros) verifier nodes. Each valid annotation pays USDC instantly on Monad and mints a token for the dataset the contributor helped create. When the dataset is licensed, the fee is split among everyone who holds that token.
 
-> Monad Blitz Mumbai (Devcon Edition), 4 Nov 2026 · Verified by [Pyros](https://github.com/RudranshG07/pyros) · Settled on Monad
+> Monad Blitz Mumbai (Devcon Edition), 4 Nov 2026 · Verified by Pyros · Settled on Monad
 
 ---
 
 ## The problem
 
-- **Robots learn by copying humans.** To learn one task, such as putting a cup in a box, a robot needs thousands of human demonstrations, each done a little differently.
-- **Collecting them is slow and expensive.** Companies pay operators in labs (Tesla pays around $48/hour for Optimus teleoperation). The work happens in a few places with a few people.
-- **Crowdsourcing has two blockers.** You can't trust strangers' work, and you can't pay thousands of people a few cents each through banks or PayPal.
+- **Robots learn from labelled data.** Every robot recording (camera video plus sensor streams such as joint torque and contact force) has to be annotated: when did the grasp fail, where should the robot have grabbed, what's in the scene. Robots also need thousands of human demonstrations per task.
+- **Labelling is slow and expensive.** It's done in labs by a few people in a few places. Tesla pays operators around $48/hour for Optimus data.
+- **Crowdsourcing has two blockers.** You can't trust strangers' labels, and you can't pay thousands of people a few cents each through banks or PayPal.
 
 ## The solution
 
-Trace turns robot training into a game anyone can play from a phone.
+Contributors annotate robot recordings from their phones. The work is interactive, not a multiple-choice quiz, and contributors earn for every annotation that physics confirms.
 
 | | |
 |---|---|
-| **Pyros checks it** | The Pyros physics engine replays every attempt on the server. It checks whether the task succeeded, whether a motor was overloaded and whether the arm crashed. Nobody reviews attempts by hand, and a hacked client can't fake a pass. |
-| **Monad pays it** | Every valid attempt is paid in USDC on Monad in under a second. Fees are close to zero, so a $0.05 payment to anyone in the world works. |
-| **Players own it** | Each valid attempt mints dataset tokens: 1 to the player and 1 to the engineer who funded the task. Every license fee is split pro-rata among the token holders. |
+| **Pyros checks it** | The Pyros engine keeps an exact physics log of every recording: when contact happened, when torque spiked and where the object was. Annotations are checked against that log automatically. There is no voting or manual review, and random clicking doesn't pay. |
+| **Monad pays it** | Every valid annotation is paid in USDC on Monad in under a second. Fees are close to zero, so a $0.05 payment to anyone in the world works. |
+| **Contributors own it** | Each valid contribution mints dataset tokens: 1 to the contributor and 1 to the engineer who funded the task. Every license fee is split pro-rata among the token holders. |
+
+### Two ways to contribute
+
+| Annotate (core) | Demonstrate (bonus) |
+|---|---|
+| Label existing robot recordings using their sensor data: failure moments, grasp points, contact events and objects. Each clip takes 10–20 seconds, and every label is verified against the Pyros physics log. | Control a robot arm in the browser sim to show it how to do a task. Pyros replays the attempt and checks it. Every demonstration, failed ones especially, also becomes a new recording for others to annotate. |
 
 ## Who uses it
 
-- **The robot engineer (buyer)** designs and simulates a robot in Pyros, publishes a task with a USDC budget, and pays for each valid demonstration.
-- **The player (contributor)** opens a link or scans a QR code and plays. They need no app, no wallet setup and no crypto knowledge. They earn USDC for every attempt that passes the physics check.
+- **The robot engineer (buyer)** has thousands of sim and real-robot recordings that need annotating, and needs demonstrations to train on. They pay per valid annotation or demonstration.
+- **The contributor** is anyone with a phone, such as a student in Chennai or a gamer in Lagos. They need no app, no wallet setup and no crypto knowledge.
 - **Dataset licensees** (AI labs, other Pyros users, AI agents) pay to license a dataset, and the fee goes to the token holders.
+
+The engineer sets the task and rules once. Contributors just mark what they see, and Pyros catches mistakes automatically.
 
 ## How it works
 
 ```mermaid
 flowchart TD
-  eng["Engineer (Pyros)<br/>creates task + USDC budget"] --> esc["Monad: TaskEscrow<br/>locks the budget"]
-  esc --> phone["Player's phone<br/>scans QR, opens the game"]
-  phone --> sim["MuJoCo sim in the browser<br/>player moves the arm; inputs are recorded"]
-  sim -->|"move file only, never 'I won'"| ver["Pyros verifier<br/>replays the moves, checks physics"]
-  ver -->|PASS| pay["Monad: AttemptRegistry<br/>record + pay USDC + mint dataset tokens"]
-  ver -->|FAIL| retry["No payment<br/>reason shown, player retries"]
-  pay --> data["Engineer gets the dataset<br/>joints, torques, success label"]
+  eng["Engineer (Pyros)<br/>uploads recordings + USDC budget"] --> esc["Monad: TaskEscrow<br/>locks the budget, commits to the answer log"]
+  esc --> phone["Contributor's phone<br/>opens a link or scans a QR code"]
+  phone --> ann["Annotate in the browser<br/>video + torque / contact graphs<br/>mark the failure moment, tap the grasp point"]
+  ann --> ver["3 Pyros verifier nodes<br/>each compares with the physics log and signs"]
+  ver -->|"2 of 3 PASS"| pay["Monad: AttemptRegistry<br/>record + pay USDC + mint dataset tokens"]
+  ver -->|FAIL| next["No payment<br/>next clip"]
+  pay --> data["Engineer gets a labelled dataset<br/>video, sensor streams, verified labels"]
   data --> lic["DataVault: license fee<br/>split to every token holder"]
 ```
 
 ## Why Monad
 
-- **One tap is one transaction with three state changes:** record the attempt, pay USDC and mint dataset tokens. Hundreds of players produce thousands of transactions per minute, and that load needs near-zero fees and sub-second finality.
-- **The contracts are built for parallel execution.** They use per-player and per-attempt storage instead of global counters, so different players' payouts don't contend for the same slots.
-- **Players never pay gas.** A relayer submits every transaction, so players never need MON.
+- **One verified annotation is one transaction with three state changes:** record it, pay USDC and mint dataset tokens. A room of contributors at 10–20 seconds per clip produces thousands of transactions per minute, which needs near-zero fees and sub-second finality.
+- **The contracts are built for parallel execution.** They use per-contributor and per-contribution storage instead of global counters, so different contributors' payouts don't contend for the same slots.
+- **Contributors never pay gas.** A relayer submits every transaction, so contributors never need MON.
 - **The chain is the star of the demo.** A live panel shows transactions per second, confirmation time, gas spent, USDC paid and tokens minted, all read from Monad events.
 
 ## Onchain assets
 
 | Asset | Standard | Role |
 |---|---|---|
-| USDC | ERC-20 | Task budgets in escrow, per-attempt payouts and license fees. |
-| Dataset token (e.g. `dCUP-01`) | ERC-20, one per dataset | 1 minted to the player and 1 to the engineer per verified attempt. Earns a pro-rata share of license fees. Tradable. |
-| TRACE | ERC-20 | Staked by verifier nodes. A node that signs a wrong result is slashed. |
-| Reputation | Onchain stats, not a token | Attempts, passes and level per player. Not transferable, so it can't be bought. |
+| USDC | ERC-20 | Task budgets in escrow, per-contribution payouts and license fees. |
+| Dataset token (e.g. `dCUP-01`) | ERC-20, one per dataset | 1 minted to the contributor and 1 to the engineer per verified contribution. Earns a pro-rata share of license fees. Tradable. |
+| TRACE (called ARENA in the idea doc) | ERC-20 | Staked by each verifier node. A node that signs a wrong result is slashed. |
+| Reputation | Onchain stats, not a token | Contributions, passes and level per contributor. Not transferable, so it can't be bought. |
 
 ## Today vs roadmap
 
 | Build today | Roadmap |
 |---|---|
-| TaskEscrow, AttemptRegistry with reputation, DatasetFactory and dataset tokens, DataVault license and pro-rata claim, TRACE token with one staked verifier, browser arm game with QR, Pyros verifier (goal + torque checks), live Monad stats panel, DEX pool (if time) | 3 verifier nodes with 2-of-3 quorum, challenge-and-slash disputes, x402 data API for AI agents, player staking tiers, more task types, crowd annotation of Pyros sensor data, export to standard robot-learning formats, real-robot teleoperation |
+| TaskEscrow, AttemptRegistry with reputation, DatasetFactory and dataset tokens, DataVault license and pro-rata claim, TRACE token with **3 staked verifier nodes and 2-of-3 signatures**, annotation UI on 20–30 Pyros sim clips, live Monad stats panel, demonstration mode and DEX pool (if time) | Verifier nodes run by independent operators, challenge-and-slash disputes, x402 data API for AI agents, contributor staking tiers, real-robot ROS 2 recordings, more annotation types and data beyond robotics |
 
 ## Repository layout
 
 ```
 contracts/   Foundry: TaskEscrow, AttemptRegistry, DatasetFactory, DatasetToken, DataVault, TraceToken, VerifierStaking
-verifier/    Python: FastAPI + MuJoCo replay + web3 relayer
-web/         Static site: /play (game), /live (stats panel), /task/:id (QR landing)
-scenes/      Shared MuJoCo scene files: one source of truth for browser and verifier
+verifier/    Python: coordinator (task API + relayer) and verifier node (run as 3 processes)
+exporter/    Python: Pyros/MuJoCo clip exporter (video, sensor streams, physics log)
+web/         Static site: /t/:task (annotate), /live (stats panel), /demo (bonus sim)
+clips/       Exported clip bundles for the demo task
 docs/        Notes resolved during the build
 ```
 
@@ -80,7 +89,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design: data formats, cont
 
 ## Disclosure
 
-Pyros, the robotics engineering copilot and physics engine, existed before this event. The following were built today: the Trace network, the smart contracts, the game website, the verifier integration and the live stats panel.
+Pyros, the robotics engineering copilot and physics engine, existed before this event. The following were built today: the Trace network, the smart contracts, the annotation website, the verifier network, the clip exporter and the live stats panel.
 
 Tokens that share revenue can count as securities in some jurisdictions, and paying contributors can count as money transmission. This demo runs on Monad testnet with test USDC. Get legal advice before a mainnet launch.
 
