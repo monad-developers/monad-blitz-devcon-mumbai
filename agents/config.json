@@ -1,0 +1,37 @@
+{
+  "network": {
+    "name": "Monad Testnet",
+    "chainId": 10143,
+    "rpcUrl": "https://testnet-rpc.monad.xyz",
+    "txExplorer": "https://testnet.monadscan.com/tx/",
+    "addressExplorer": "https://testnet.monadvision.com/address/",
+    "receiptPollingMs": 300
+  },
+  "robots": [
+    {
+      "id": "1",
+      "agent": "AGENT_1"
+    },
+    {
+      "id": "2",
+      "agent": "AGENT_2"
+    }
+  ],
+  "funding": {
+    "deployerFloorMon": "12",
+    "agentGasFloorMon": "1",
+    "agentTopupTargetMon": "3",
+    "agentTopupDailyCapMon": "10"
+  },
+  "tx": {
+    "separateSimulate": false,
+    "feeRefreshMs": 3000,
+    "fixedGasPreflight": true,
+    "fixedGas": {
+      "postJob": 174700,
+      "claim": 55900,
+      "settle": 114100
+    },
+    "_fixedGasNote": "measured on v1 2026-11-04 via eth_estimateGas: postJob max 166377 (first job), claim 53165, settle 108634 (fresh worker); +5%"
+  }
+}
