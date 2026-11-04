@@ -82,19 +82,19 @@ class PhoneLink(context: Context, private val onEvent: (LinkEvent) -> Unit) {
         }
     }
 
-    fun host() {
+    fun host(session: String) {
         stop()
         report("Waiting for your friend…")
         val options = AdvertisingOptions.Builder().setStrategy(STRATEGY).build()
-        client.startAdvertising(localName, SERVICE_ID, lifecycle, options)
+        client.startAdvertising(localName, serviceId(session), lifecycle, options)
             .addOnFailureListener { report("Could not start game: ${it.message}") }
     }
 
-    fun join() {
+    fun join(session: String) {
         stop()
-        report("Looking for a game…")
+        report("Connecting to your friend…")
         val options = DiscoveryOptions.Builder().setStrategy(STRATEGY).build()
-        client.startDiscovery(SERVICE_ID, discovery, options)
+        client.startDiscovery(serviceId(session), discovery, options)
             .addOnFailureListener { report("Could not search: ${it.message}") }
     }
 
@@ -114,6 +114,9 @@ class PhoneLink(context: Context, private val onEvent: (LinkEvent) -> Unit) {
         peerId = null
         foundEndpoint = null
     }
+
+    /** The session comes from the tap or QR code, so only this pair of phones can find each other. */
+    private fun serviceId(session: String) = "$SERVICE_PREFIX.${session.removePrefix("0x")}"
 
     private fun requestConnection() {
         val id = foundEndpoint ?: return
@@ -135,7 +138,7 @@ class PhoneLink(context: Context, private val onEvent: (LinkEvent) -> Unit) {
 
     private companion object {
         const val TAG = "TapMateLink"
-        const val SERVICE_ID = "xyz.tapmate.app.chess"
+        const val SERVICE_PREFIX = "xyz.tapmate.app.chess"
         const val RETRY_MILLIS = 1_500L
         val STRATEGY: Strategy = Strategy.P2P_POINT_TO_POINT
     }
