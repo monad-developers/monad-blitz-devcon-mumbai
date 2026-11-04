@@ -88,6 +88,37 @@ Confirm the live USDC token address on Monad at implementation time. Do not hard
 
 Paying contributors is money transmission in many jurisdictions. Get counsel before a public payout.
 
+## Trust model
+
+v1 is decentralised settlement with a trusted coordinator.
+
+| Step | Trusted party | Check |
+|---|---|---|
+| Task assignment and leases | Coordinator | Labeler signs every receipt with a session key. |
+| Quality decision | Coordinator | Gold tasks have known answers, and anyone can recompute IoU from label hashes. |
+| Receipt root | Coordinator | `BatchSettlement` enforces quorum or a gold pass. |
+| Payout | Contracts | Merkle proof against the posted root. |
+
+The coordinator chooses who is in the receipt root, so a labeler cannot yet dispute an omission. Planned for after the pilot: a challenge window on `BatchSettlement` where a labeler submits their signed receipt and the batch reverts if the root omits it.
+
+Lease state and held budget live in the coordinator database, not in process memory. A restart must not release a hold or double-lease a task.
+
+## Economics
+
+Micropayments are batched. A labeler earns per accepted task and receives USDC when the batch settles and they claim.
+
+| Quantity | Definition |
+|---|---|
+| Payout per task | Set per campaign in `CampaignEscrow`. |
+| Cost per accepted label | Payout × labels per task (3 for open tasks) + gold overhead + gas share. |
+| Gas share | Gas for one settlement transaction ÷ accepted tasks in the batch. |
+| Claim cost | Gas for one merkle claim, paid per labeler per claim. |
+| Minimum claim | The balance at which claim cost is a small fraction of the payout. |
+
+Payout per task, gas per batch, and claim cost on Monad are not measured yet. Step 6 records them. Until then, do not state a cost per label.
+
+A labeler claims once their balance passes the minimum claim, not per task. That is what makes small payouts practical for contributors anywhere.
+
 ## Label schema v1
 
 The first task is an RGB-D frame with a 2D box, a class, and a graspable flag. Gazebo already publishes image, depth, and points, and a scripted scene knows the object pose, so every gold task has a checkable answer.
