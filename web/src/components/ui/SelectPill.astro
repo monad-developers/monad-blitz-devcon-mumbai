@@ -1,0 +1,27 @@
+---
+interface Props {
+  label: string;
+  active?: boolean;
+  value?: string;
+}
+
+const { label, active, value } = Astro.props;
+---
+
+<button class:list={["select-pill", { active }]} type="button" aria-pressed={active ? "true" : "false"} data-value={value}>{label}</button>
+
+<style>
+  .select-pill {
+    min-height: var(--touch);
+    padding: 0 var(--space-lg);
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .select-pill.active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+</style>

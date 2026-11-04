@@ -1,0 +1,264 @@
+---
+import { CLIP_SECONDS, SLIP_T, MARK_T, TOLERANCE_S, force } from "../../lib/armsim";
+
+const GX0 = 24;
+const GX1 = 290;
+const GY0 = 258;
+const GY1 = 206;
+const gx = (t: number) => GX0 + (t / CLIP_SECONDS) * (GX1 - GX0);
+const gy = (n: number) => GY0 - (n / 5) * (GY0 - GY1);
+const samples = Array.from({ length: CLIP_SECONDS * 40 + 1 }, (_, i) => i / 40);
+const forcePath = samples.map((t, i) => `${i ? "L" : "M"}${gx(t).toFixed(1)} ${gy(force(t)).toFixed(1)}`).join(" ");
+---
+
+<figure class="arm-sim" data-arm-sim aria-label="A simulated robot arm picks up a cup, which slips; the contact-force line drops at the same moment.">
+  <svg viewBox="0 0 300 270" role="img" aria-hidden="true">
+    <g class="chips">
+      <g class="chip" data-from="6"><rect x="8" y="8" width="42" height="18" rx="9" /><text x="29" y="20.5">N1 ✓</text></g>
+      <g class="chip" data-from="6"><rect x="54" y="8" width="42" height="18" rx="9" /><text x="75" y="20.5">N2 ✓</text></g>
+      <g class="chip off" data-from="6"><rect x="100" y="8" width="42" height="18" rx="9" /><text x="121" y="20.5">N3 —</text></g>
+      <g class="chip lit" data-from="7"><rect x="150" y="8" width="60" height="18" rx="9" /><text x="180" y="20.5">+$0.05</text></g>
+      <g class="chip lit" data-from="8"><rect x="214" y="8" width="78" height="18" rx="9" /><text x="253" y="20.5">+1 dCUP-01</text></g>
+    </g>
+
+    <line class="table" x1="8" y1="170" x2="292" y2="170" />
+    <rect class="table-top" x="8" y="170" width="284" height="10" />
+    <rect class="pedestal" x="44" y="124" width="32" height="46" rx="3" />
+
+    <g class="cup" data-cup>
+      <rect x="-11" y="-14" width="22" height="28" rx="3" />
+      <path d="M11 -6 q8 1 8 8 q0 7 -8 8" />
+    </g>
+
+    <line class="link" data-link1 x1="60" y1="118" x2="60" y2="118" />
+    <line class="link" data-link2 x1="60" y1="118" x2="60" y2="118" />
+    <g data-gripper>
+      <line class="palm" x1="-16" y1="0" x2="16" y2="0" />
+      <line class="finger" data-finger-l x1="-15" y1="0" x2="-15" y2="24" />
+      <line class="finger" data-finger-r x1="15" y1="0" x2="15" y2="24" />
+    </g>
+    <circle class="joint" cx="60" cy="118" r="6" />
+    <circle class="joint" data-elbow cx="60" cy="118" r="5" />
+    <circle class="joint small" data-wrist cx="60" cy="118" r="4" />
+
+    <line class="axis" x1={GX0} y1={GY0} x2={GX1} y2={GY0} />
+    <text class="label" x={GX0} y="196">contact force (N)</text>
+    <rect class="band" data-from="4" x={gx(SLIP_T - TOLERANCE_S)} y={GY1 - 4} width={gx(SLIP_T + TOLERANCE_S) - gx(SLIP_T - TOLERANCE_S)} height={GY0 - GY1 + 4} />
+    <line class="truth" data-from="4" x1={gx(SLIP_T)} y1={GY1 - 4} x2={gx(SLIP_T)} y2={GY0} />
+    <path class="force" d={forcePath} />
+    <rect class="unplayed" data-unplayed x={GX0} y={GY1 - 6} width={GX1 - GX0} height={GY0 - GY1 + 8} />
+    <line class="cursor" data-cursor x1={GX0} y1={GY1 - 8} x2={GX0} y2={GY0 + 2} />
+    <g class="mark" data-from="3">
+      <line x1={gx(MARK_T)} y1={GY1 - 8} x2={gx(MARK_T)} y2={GY0} />
+      <circle cx={gx(MARK_T)} cy={GY1 - 8} r="3.5" />
+    </g>
+    <text class="readout" data-readout x={GX1} y="196" text-anchor="end"></text>
+    <text class="label" x={GX1} y="268" text-anchor="end">clip time · {CLIP_SECONDS} s</text>
+  </svg>
+</figure>
+
+<style>
+  .arm-sim {
+    margin: 0;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .table {
+    stroke: var(--card-ink);
+    stroke-width: 1.5;
+    opacity: 0.5;
+  }
+  .table-top {
+    fill: var(--card-ink);
+    opacity: 0.06;
+  }
+  .pedestal {
+    fill: var(--card-ink);
+    opacity: 0.8;
+  }
+  .link {
+    stroke: var(--card-ink);
+    stroke-width: 11;
+    stroke-linecap: round;
+  }
+  .palm,
+  .finger {
+    stroke: var(--card-ink);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+  .joint {
+    fill: var(--fig-lit);
+    stroke: var(--card-ink);
+    stroke-width: 2;
+  }
+  .cup rect {
+    fill: #e9d8a6;
+    stroke: var(--card-ink);
+    stroke-width: 1.5;
+  }
+  .cup path {
+    fill: none;
+    stroke: var(--card-ink);
+    stroke-width: 2.5;
+  }
+  .axis {
+    stroke: var(--card-ink);
+    opacity: 0.25;
+  }
+  .force {
+    fill: none;
+    stroke: var(--fig-scan);
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+  .unplayed {
+    fill: var(--card-paper);
+    opacity: 0.82;
+  }
+  .cursor {
+    stroke: var(--card-ink);
+    stroke-width: 1.25;
+  }
+  .band {
+    fill: var(--fig-lit);
+    opacity: 0.55;
+  }
+  .truth {
+    stroke: var(--fig-accent);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+  }
+  .mark line {
+    stroke: var(--card-ink);
+    stroke-width: 1.5;
+  }
+  .mark circle {
+    fill: var(--card-ink);
+  }
+  .label,
+  .readout,
+  .chip text {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    fill: var(--card-ink);
+  }
+  .label {
+    opacity: 0.6;
+  }
+  .chip rect {
+    fill: var(--card-ink);
+  }
+  .chip text {
+    fill: var(--card-paper);
+    text-anchor: middle;
+  }
+  .chip.off rect {
+    fill: none;
+    stroke: var(--card-ink);
+    stroke-opacity: 0.35;
+  }
+  .chip.off text {
+    fill: var(--card-ink);
+    opacity: 0.5;
+  }
+  .chip.lit rect {
+    fill: var(--fig-lit);
+  }
+  .chip.lit text {
+    fill: var(--card-ink);
+  }
+  [data-from] {
+    opacity: 0;
+    transition: opacity 360ms ease;
+  }
+  [data-from].on {
+    opacity: 1;
+  }
+  .band[data-from].on {
+    opacity: 0.55;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-from] {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { CLIP_SECONDS, MARK_T, SLIP_T, TOLERANCE_S, armState, force } from "../../lib/armsim";
+
+  const root = document.querySelector<SVGElement>("[data-arm-sim] svg");
+  if (root) {
+    const $ = <T extends Element>(sel: string) => root.querySelector<T>(sel)!;
+    const link1 = $<SVGLineElement>("[data-link1]");
+    const link2 = $<SVGLineElement>("[data-link2]");
+    const elbow = $<SVGCircleElement>("[data-elbow]");
+    const wrist = $<SVGCircleElement>("[data-wrist]");
+    const gripper = $<SVGGElement>("[data-gripper]");
+    const fingerL = $<SVGLineElement>("[data-finger-l]");
+    const fingerR = $<SVGLineElement>("[data-finger-r]");
+    const cup = $<SVGGElement>("[data-cup]");
+    const cursor = $<SVGLineElement>("[data-cursor]");
+    const unplayed = $<SVGRectElement>("[data-unplayed]");
+    const readout = $<SVGTextElement>("[data-readout]");
+    const staged = Array.from(root.querySelectorAll<SVGElement>("[data-from]"));
+    const GX0 = 24;
+    const GX1 = 290;
+
+    const set = (el: Element, attrs: Record<string, number | string>) => {
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+    };
+
+    const render = () => {
+      const travel = document.documentElement.scrollHeight - window.innerHeight;
+      const p = travel > 0 ? Math.min(1, Math.max(0, window.scrollY / travel)) : 0;
+      const step = Math.min(9, Math.floor(p * 10));
+      const t = Math.min(1, p / 0.45) * CLIP_SECONDS;
+      const s = armState(t);
+
+      set(link1, { x1: s.shoulder.x, y1: s.shoulder.y, x2: s.elbow.x, y2: s.elbow.y });
+      set(link2, { x1: s.elbow.x, y1: s.elbow.y, x2: s.wrist.x, y2: s.wrist.y });
+      set(elbow, { cx: s.elbow.x, cy: s.elbow.y });
+      set(wrist, { cx: s.wrist.x, cy: s.wrist.y });
+      gripper.setAttribute("transform", `translate(${s.wrist.x} ${s.wrist.y})`);
+      const half = s.gap / 2;
+      set(fingerL, { x1: -half, x2: -half });
+      set(fingerR, { x1: half, x2: half });
+      cup.setAttribute("transform", `translate(${s.cup.x} ${s.cup.y}) rotate(${s.cupTilt})`);
+
+      const x = GX0 + (t / CLIP_SECONDS) * (GX1 - GX0);
+      set(cursor, { x1: x, x2: x });
+      set(unplayed, { x, width: Math.max(0, GX1 - x) });
+
+      if (step >= 5) {
+        const dt = Math.abs(MARK_T - SLIP_T);
+        readout.textContent = `Δt ${dt.toFixed(2)} s · s = ${Math.round(10000 * (1 - dt / TOLERANCE_S))}`;
+      } else if (step >= 4) {
+        readout.textContent = `t* ${SLIP_T.toFixed(2)} s · mark ${MARK_T.toFixed(2)} s`;
+      } else {
+        readout.textContent = `t ${t.toFixed(2)} s · ${force(t).toFixed(1)} N`;
+      }
+
+      for (const el of staged) el.classList.toggle("on", step >= Number(el.dataset.from));
+    };
+
+    let queued = false;
+    const schedule = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        render();
+      });
+    };
+
+    render();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+  }
+</script>

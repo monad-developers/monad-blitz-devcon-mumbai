@@ -1,0 +1,392 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Live — Trace" description="Live Monad stats for Trace: transactions, tap-to-paid time, verifier agreement, USDC paid and tokens minted." theme="dark">
+  <main class="live">
+    <header class="top">
+      <a class="mark" href="/">trace<span aria-hidden="true"></span></a>
+      <span class="net mono" data-net>…</span>
+    </header>
+    <h1>Live on Monad</h1>
+    <p class="sub" data-sub>Every number here is read from chain events or measured by the coordinator.</p>
+
+    <section class="tiles" aria-label="Totals">
+      <div class="tile"><small>Transactions</small><strong class="mono" data-total>—</strong><span data-total-sub>records + licenses</span></div>
+      <div class="tile"><small>Trace TPS · 10 s</small><strong class="mono" data-tps>—</strong><span data-net-tps>network —</span></div>
+      <div class="tile"><small>Tap to paid</small><strong class="mono" data-paid-ms>—</strong><span data-paid-p95>p95 —</span></div>
+      <div class="tile"><small>USDC paid</small><strong class="mono" data-usdc>—</strong><span data-per-label>—</span></div>
+      <div class="tile"><small>Dataset tokens</small><strong class="mono" data-minted>—</strong><span data-minted-sub>total supply</span></div>
+      <div class="tile"><small>Gas spent</small><strong class="mono" data-gas>—</strong><span data-gas-sub>—</span></div>
+    </section>
+
+    <div class="cols">
+      <section class="panel" aria-labelledby="feed-title">
+        <h2 id="feed-title">Payout feed</h2>
+        <ol class="feed" data-feed><li class="empty">Waiting for the first attempt…</li></ol>
+      </section>
+      <div class="stack">
+        <section class="panel" aria-labelledby="nodes-title">
+          <h2 id="nodes-title">Verifier agreement</h2>
+          <ul class="nodes" data-nodes><li class="empty">No signatures yet.</li></ul>
+          <p class="note mono" data-sign></p>
+        </section>
+        <section class="panel" aria-labelledby="board-title">
+          <h2 id="board-title">Leaderboard</h2>
+          <ol class="board" data-board><li class="empty">No contributors yet.</li></ol>
+        </section>
+      </div>
+    </div>
+    <p class="note" data-error role="status"></p>
+  </main>
+</BaseLayout>
+
+<style>
+  .live {
+    display: grid;
+    gap: var(--space-xl);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-lg) var(--gutter) var(--space-block);
+  }
+  .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: var(--touch);
+  }
+  .mark {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+  }
+  .mark span {
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+  }
+  .net {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  h1 {
+    font-size: clamp(32px, 5vw, 56px);
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+  }
+  .sub,
+  .note,
+  .tile span,
+  .empty {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-md);
+  }
+  .tile {
+    display: grid;
+    gap: var(--space-xs);
+    padding: var(--space-lg);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .tile small {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .tile strong {
+    font-size: clamp(26px, 3.4vw, 40px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: var(--space-md);
+  }
+  .stack {
+    display: grid;
+    gap: var(--space-md);
+    align-content: start;
+  }
+  .panel {
+    display: grid;
+    gap: var(--space-md);
+    align-content: start;
+    padding: var(--space-lg);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    min-width: 0;
+  }
+  h2 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .feed,
+  .nodes,
+  .board {
+    display: grid;
+    gap: var(--space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .feed :global(li),
+  .nodes :global(li),
+  .board :global(li) {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-sm) 0;
+    border-bottom: 1px dashed var(--line);
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+  .feed :global(li:last-child),
+  .nodes :global(li:last-child),
+  .board :global(li:last-child) {
+    border-bottom: 0;
+  }
+  .feed :global(.pay) {
+    color: var(--accent-text);
+  }
+  .feed :global(.miss) {
+    color: var(--muted);
+  }
+  .feed :global(a) {
+    border-bottom: 1px solid var(--line);
+  }
+  .feed :global(.fresh) {
+    animation: flash 1.2s ease;
+  }
+  @keyframes flash {
+    from { background: color-mix(in srgb, var(--accent) 25%, transparent); }
+    to { background: transparent; }
+  }
+  @media (max-width: 860px) {
+    .tiles {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .cols {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .feed :global(.fresh) {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { formatEther, type Address, type Log } from "viem";
+  import { chainConfigured, config, shortHex, txLink, usdc } from "../lib/config";
+  import { erc20Abi, publicClient, registryAbi, vaultAbi } from "../lib/chain";
+
+  type Recorded = { hash: string; block: bigint; contributor: Address; passed: boolean; score: number; paid: bigint };
+  type Stats = {
+    signMs: { median: number | null; p95: number | null };
+    submitToReceiptMs: { median: number | null; p95: number | null };
+    nodes: { signer: string; signatures: number; disagreements: number }[];
+    nodeErrors: { node: string; n: number }[];
+  };
+
+  const root = document.querySelector<HTMLElement>(".live")!;
+  const $ = <T extends Element>(sel: string) => root.querySelector<T>(sel)!;
+  const set = (sel: string, text: string) => ($<HTMLElement>(sel).textContent = text);
+  const error = (text: string) => set("[data-error]", text);
+
+  const records: Recorded[] = [];
+  const licenses: { hash: string; block: bigint; amount: bigint }[] = [];
+  const blockTimes = new Map<bigint, number>();
+  const gasByTx = new Map<string, bigint>();
+  const contributors = new Set<Address>();
+  let fromBlock = config.startBlock;
+  let fresh = new Set<string>();
+
+  async function blockTime(n: bigint): Promise<number> {
+    if (!blockTimes.has(n)) {
+      const b = await publicClient().getBlock({ blockNumber: n });
+      blockTimes.set(n, Number(b.timestamp));
+    }
+    return blockTimes.get(n)!;
+  }
+
+  async function pull() {
+    const client = publicClient();
+    const latest = await client.getBlockNumber();
+    if (latest < fromBlock) return latest;
+    const [recLogs, licLogs] = await Promise.all([
+      client.getLogs({ address: config.registry as Address, event: registryAbi[0], fromBlock, toBlock: latest }),
+      config.vault ? client.getLogs({ address: config.vault as Address, event: vaultAbi[0], fromBlock, toBlock: latest }) : Promise.resolve([] as Log[]),
+    ]);
+    fresh = new Set();
+    for (const log of recLogs) {
+      const a = (log as unknown as { args: { contributor: Address; passed: boolean; score: number; paid: bigint } }).args;
+      records.push({ hash: log.transactionHash!, block: log.blockNumber!, contributor: a.contributor, passed: a.passed, score: a.score, paid: a.paid });
+      contributors.add(a.contributor);
+      fresh.add(log.transactionHash!);
+    }
+    for (const log of licLogs) {
+      const a = (log as unknown as { args: { amount: bigint } }).args;
+      licenses.push({ hash: log.transactionHash!, block: log.blockNumber!, amount: a.amount });
+    }
+    const hashes = [...recLogs, ...licLogs].map((l) => l.transactionHash!).filter((h) => !gasByTx.has(h));
+    const receipts = await Promise.all(hashes.map((hash) => client.getTransactionReceipt({ hash: hash as `0x${string}` })));
+    for (const r of receipts) gasByTx.set(r.transactionHash, r.gasUsed * r.effectiveGasPrice);
+    await Promise.all([...new Set([...recLogs, ...licLogs].map((l) => l.blockNumber!))].map(blockTime));
+    fromBlock = latest + 1n;
+    return latest;
+  }
+
+  async function networkTps(latest: bigint): Promise<number | null> {
+    const client = publicClient();
+    const head = await client.getBlock({ blockNumber: latest });
+    let txs = head.transactions.length;
+    let oldest = Number(head.timestamp);
+    for (let n = latest - 1n; n >= 0n && Number(head.timestamp) - oldest < 10 && latest - n < 40n; n--) {
+      const b = await client.getBlock({ blockNumber: n });
+      if (Number(head.timestamp) - Number(b.timestamp) > 10) break;
+      txs += b.transactions.length;
+      oldest = Number(b.timestamp);
+    }
+    const span = Math.max(1, Number(head.timestamp) - oldest);
+    return txs / span;
+  }
+
+  function render(latest: bigint, nowTs: number, netTps: number | null) {
+    const total = records.length + licenses.length;
+    set("[data-total]", total.toLocaleString());
+    set("[data-total-sub]", `${records.length} records · ${licenses.length} licenses`);
+    const windowCount = [...records, ...licenses].filter((e) => nowTs - (blockTimes.get(e.block) ?? 0) <= 10).length;
+    set("[data-tps]", (windowCount / 10).toFixed(1));
+    set("[data-net-tps]", netTps === null ? "network —" : `network ${netTps.toFixed(1)} tx/s`);
+    const paid = records.reduce((s, r) => s + r.paid, 0n);
+    const paidCount = records.filter((r) => r.paid > 0n).length;
+    set("[data-usdc]", usdc(paid));
+    set("[data-per-label]", `${paidCount} paid annotations`);
+    const gas = [...gasByTx.values()].reduce((s, g) => s + g, 0n);
+    set("[data-gas]", `${Number(formatEther(gas)).toFixed(5)} MON`);
+    set("[data-gas-sub]", paidCount ? `${Number(formatEther(gas / BigInt(Math.max(1, records.length)))).toFixed(6)} MON per record` : "—");
+    set("[data-net]", `chain ${config.chainId} · block ${latest}`);
+
+    const feed = $<HTMLOListElement>("[data-feed]");
+    const latestRecords = records.slice(-14).reverse();
+    if (latestRecords.length) {
+      feed.replaceChildren(
+        ...latestRecords.map((r) => {
+          const li = document.createElement("li");
+          if (fresh.has(r.hash)) li.className = "fresh";
+          const who = document.createElement("span");
+          who.textContent = shortHex(r.contributor);
+          const what = document.createElement("span");
+          what.className = r.paid > 0n ? "pay" : "miss";
+          what.textContent = r.paid > 0n ? `+${usdc(r.paid)} · +1 ${config.datasetSymbol}` : r.passed ? "passed · cap or budget" : "missed";
+          const link = txLink(r.hash);
+          const tx = document.createElement(link ? "a" : "span");
+          tx.textContent = shortHex(r.hash, 8, 4);
+          if (link && tx instanceof HTMLAnchorElement) {
+            tx.href = link;
+            tx.target = "_blank";
+            tx.rel = "noopener";
+          }
+          li.append(who, what, tx);
+          return li;
+        }),
+      );
+    }
+  }
+
+  async function renderSupply() {
+    if (!config.dataset) return;
+    const supply = await publicClient().readContract({ address: config.dataset as Address, abi: erc20Abi, functionName: "totalSupply" });
+    set("[data-minted]", (Number(supply / 10n ** 16n) / 100).toLocaleString());
+    set("[data-minted-sub]", `${config.datasetSymbol} total supply`);
+  }
+
+  async function renderBoard() {
+    const list = [...contributors];
+    if (!list.length) return;
+    const stats = await Promise.all(
+      list.map((a) => publicClient().readContract({ address: config.registry as Address, abi: registryAbi, functionName: "stats", args: [a] })),
+    );
+    const rows = list.map((a, i) => ({ a, passed: Number(stats[i][1]), submitted: Number(stats[i][0]) })).sort((x, y) => y.passed - x.passed).slice(0, 10);
+    $<HTMLOListElement>("[data-board]").replaceChildren(
+      ...rows.map((r, i) => {
+        const li = document.createElement("li");
+        const who = document.createElement("span");
+        who.textContent = `${i + 1}. ${shortHex(r.a)}`;
+        const score = document.createElement("span");
+        score.textContent = `${r.passed} / ${r.submitted} passed`;
+        li.append(who, score);
+        return li;
+      }),
+    );
+  }
+
+  async function renderStats() {
+    if (!config.apiUrl) {
+      set("[data-paid-ms]", "—");
+      set("[data-paid-p95]", "coordinator not configured");
+      return;
+    }
+    const res = await fetch(`${config.apiUrl}/stats`);
+    if (!res.ok) throw new Error(`coordinator /stats ${res.status}`);
+    const s = (await res.json()) as Stats;
+    const ms = (v: number | null) => (v === null ? "—" : v >= 1000 ? `${(v / 1000).toFixed(2)} s` : `${Math.round(v)} ms`);
+    set("[data-paid-ms]", ms(s.submitToReceiptMs.median));
+    set("[data-paid-p95]", `p95 ${ms(s.submitToReceiptMs.p95)} · sign ${ms(s.signMs.median)}`);
+    if (s.nodes.length) {
+      $<HTMLUListElement>("[data-nodes]").replaceChildren(
+        ...s.nodes.map((n) => {
+          const li = document.createElement("li");
+          const who = document.createElement("span");
+          who.textContent = shortHex(n.signer);
+          const what = document.createElement("span");
+          what.textContent = `${n.signatures} signed · ${n.disagreements} disagreed`;
+          li.append(who, what);
+          return li;
+        }),
+      );
+    }
+    const down = s.nodeErrors.reduce((t, e) => t + e.n, 0);
+    set("[data-sign]", down ? `${down} node calls failed; quorum still needs only 2 of 3.` : "All nodes answering.");
+  }
+
+  async function cycle() {
+    try {
+      const latest = await pull();
+      const head = await publicClient().getBlock({ blockNumber: latest });
+      const netTps = await networkTps(latest).catch(() => null);
+      render(latest, Number(head.timestamp), netTps);
+      await Promise.all([renderSupply(), renderBoard(), renderStats()]);
+      error("");
+    } catch (e) {
+      error(`Update failed: ${(e as Error).message}`);
+    }
+    setTimeout(cycle, 2000);
+  }
+
+  if (!chainConfigured) {
+    set("[data-sub]", "Not configured. Set PUBLIC_RPC_URL, PUBLIC_CHAIN_ID and PUBLIC_REGISTRY_ADDRESS to read live data. No numbers are shown until then.");
+    set("[data-net]", "not configured");
+  } else {
+    cycle();
+  }
+</script>

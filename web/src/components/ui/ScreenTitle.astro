@@ -1,0 +1,40 @@
+---
+interface Props {
+  title: string;
+  backHref?: string;
+}
+
+const { title, backHref } = Astro.props;
+---
+
+<header class="screen-title">
+  {backHref && <a class="back" href={backHref} aria-label="Back">←</a>}
+  <h1>{title}</h1>
+  <slot name="right" />
+</header>
+
+<style>
+  .screen-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    min-height: 52px;
+  }
+  h1 {
+    flex: 1;
+    font-size: 30px;
+    line-height: 32px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+  }
+  .back {
+    display: grid;
+    place-items: center;
+    width: calc(var(--touch) + var(--space-xs));
+    height: calc(var(--touch) + var(--space-xs));
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    font-size: 22px;
+  }
+</style>

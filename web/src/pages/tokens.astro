@@ -1,0 +1,80 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SectionLabel from "../components/ui/SectionLabel.astro";
+import DashedRule from "../components/ui/DashedRule.astro";
+import ScreenTitle from "../components/ui/ScreenTitle.astro";
+import SelectPill from "../components/ui/SelectPill.astro";
+import Tag from "../components/ui/Tag.astro";
+import ToneCard from "../components/ui/ToneCard.astro";
+import Button from "../components/ui/Button.astro";
+
+const swatches = ["paper", "surface", "surface-hover", "ink", "muted", "line", "accent", "accent-text", "scan", "ok", "bad"];
+const tones = ["signal", "scan", "sand", "sage", "steel", "rose"] as const;
+---
+
+<BaseLayout title="Trace tokens" description="Trace design tokens.">
+  {(["light", "dark"] as const).map((mode) => (
+  <main class="page" data-theme={mode}>
+    <ScreenTitle title={`Trace ${mode}`} />
+    <SectionLabel>Color</SectionLabel>
+    <div class="grid">
+      {swatches.map((name) => (
+        <div class="swatch"><span style={`background:var(--${name})`}></span><code>--{name}</code></div>
+      ))}
+    </div>
+    <DashedRule />
+    <SectionLabel>Tone cards</SectionLabel>
+    <div class="grid">
+      {tones.map((tone) => (
+        <ToneCard tone={tone} title={tone}><Tag label="gold" dot="var(--tone-ink)" onColor /></ToneCard>
+      ))}
+    </div>
+    <DashedRule />
+    <SectionLabel>Controls</SectionLabel>
+    <div class="row">
+      <SelectPill label="All" active />
+      <SelectPill label="Boxes" />
+      <Tag label="Accepted" dot="var(--ok)" />
+      <Tag label="Rejected" dot="var(--bad)" />
+    </div>
+    <div class="row">
+      <Button>Start labeling</Button>
+      <Button variant="secondary">Fund a campaign</Button>
+    </div>
+    <p class="mono">0.042 USDC · IoU 0.81</p>
+  </main>
+  ))}
+</BaseLayout>
+
+<style>
+  .page {
+    display: grid;
+    gap: var(--space-xl);
+    max-width: 960px;
+    margin: 0 auto;
+    background: var(--paper);
+    color: var(--ink);
+    padding: var(--space-xl) var(--gutter) var(--space-block);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--space-md);
+  }
+  .swatch {
+    display: grid;
+    gap: var(--space-sm);
+    font-size: 12px;
+  }
+  .swatch span {
+    height: 56px;
+    border-radius: var(--radius);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    align-items: center;
+  }
+</style>
