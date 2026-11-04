@@ -85,6 +85,21 @@ clips/       Exported clip bundles for the demo task
 docs/        Notes resolved during the build
 ```
 
+## Run it locally
+
+Needs Foundry, `uv`, Node 22+, `jq` and `ffmpeg`.
+
+```sh
+(cd contracts && forge install foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 --no-git)
+(cd exporter && uv sync && uv run python -m trace_exporter.export --count 24 --seed 1)
+(cd verifier && uv sync)
+./scripts/local-up.sh            # anvil, contracts, 3 verifier nodes, coordinator on :8100
+./scripts/web-env.sh 31337       # writes web/.env.local
+(cd web && npm install && npm run dev)   # http://localhost:5200/t/grasp-slip-01 and /live
+```
+
+Tests: `forge test` in `contracts/`, `uv run pytest` in `verifier/` (the end-to-end test runs when the local stack is up).
+
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design: data formats, contract interfaces, the verification pipeline, the trust model and the build plan.
 
 ## Disclosure

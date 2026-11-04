@@ -1,0 +1,32 @@
+---
+interface Props {
+  tone?: "signal" | "scan" | "sand" | "sage" | "steel" | "rose";
+  title?: string;
+}
+
+const { tone, title } = Astro.props;
+---
+
+<section class:list={["tone-card", { toned: tone }]} style={tone ? `background:var(--tone-${tone})` : undefined}>
+  {title && <h2 class="card-title">{title}</h2>}
+  <slot />
+</section>
+
+<style>
+  .tone-card {
+    display: grid;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+  .tone-card.toned {
+    color: var(--tone-ink);
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+</style>

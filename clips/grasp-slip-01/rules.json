@@ -1,0 +1,1 @@
+{"annotation":"failure_moment","failure_moment":{"require_type":true,"tolerance_s":0.15},"grasp_point":{"enabled":false},"lease_s":60,"min_dwell_ms":3000,"schema_version":"1.0","task":"grasp-slip-01"}

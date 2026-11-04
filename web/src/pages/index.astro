@@ -1,0 +1,143 @@
+---
+import "katex/dist/katex.min.css";
+import "../styles/landing.css";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import StepCard from "../components/landing/StepCard.astro";
+import Marquee from "../components/landing/Marquee.astro";
+
+const plan = [
+  "Record robot clips in simulation, where Pyros knows the exact moment every contact happens.",
+  "Let anyone with a phone watch a clip with its sensor graphs and mark the moment the grasp failed.",
+  "Check the mark against physics on three staked nodes, and on two signatures record, pay and mint in one Monad transaction.",
+];
+
+const parameters = [
+  ["Payable unit", "one verified annotation", "One annotation, one transaction: record, pay USDC, mint dataset tokens."],
+  ["Tolerance", "0.15 s", "How close a failure-moment mark must land to the moment contact was lost."],
+  ["Quorum", "2 of 3", "Distinct staked verifier signatures the chain requires before it pays."],
+  ["Lease", "60 s", "One active clip per contributor at a time."],
+  ["Minimum dwell", "3 s", "Answers faster than a person could watch the clip are rejected."],
+  ["Mint per verified annotation", "1 + 1", "One dataset token to the contributor, one to the engineer who funded the task."],
+  ["Pay per annotation", "set per task", "Locked in TaskEscrow with a per-contributor cap and a deadline."],
+];
+
+const without = [
+  "You label a clip by eye, and a reviewer you never see decides if you were right.",
+  "Your pay waits for a threshold, a payment rail, and your country being supported.",
+  "A few cents of work can cost more than that to send across a border.",
+  "The dataset you helped build earns money for someone else.",
+];
+
+const withTrace = [
+  "You mark the moment the cup slipped, and physics says whether you were right, within seconds.",
+  "Two of three staked nodes sign, and Monad pays you USDC in the same transaction.",
+  "A relayer pays the gas. You never set up a wallet or hold MON.",
+  "You hold a dataset token, and every license fee is split with you.",
+];
+
+const cards = [
+  { title: "We made physics the reviewer", body: "Pyros logs every contact, torque and pose in its sim clips. An annotation passes when it matches the log. There is no voting and no manual review, so a stranger’s label can be trusted from the first tap." },
+  { title: "We kept the answer off the phone", body: "The browser gets video and sensor graphs. The physics log stays on the verifier nodes, and only its hash is on chain, committed before anyone plays." },
+  { title: "We required two of three", body: "Three nodes, each with its own key and TRACE stake, sign every verdict. The contract counts distinct staked signers, so one node can fail and payouts keep flowing." },
+  { title: "We paid per annotation", body: "On Monad one verified annotation is one transaction: record, pay, mint. A five-cent payment to anyone in the world is practical when fees are close to zero." },
+  { title: "We wrote state per contributor", body: "Payouts touch the contributor’s own slots, not a global counter, so different people’s payouts do not contend in Monad’s parallel execution." },
+  { title: "We gave contributors a share", body: "Each verified annotation mints dataset tokens. When a lab licenses the dataset, the vault splits the fee pro-rata in constant gas, and holders claim when they like." },
+];
+---
+
+<BaseLayout title="Trace — Label the physical world" description="Annotate robot recordings on your phone. Pyros verifier nodes check each label against physics, and Monad pays USDC and mints dataset tokens in one transaction." theme="dark">
+  <StepCard />
+
+  <main class="landing">
+    <header class="bar">
+      <a class="mark" href="/"><span class="mark-glyph" aria-hidden="true"></span><span>trace</span></a>
+      <nav class="bar-links" aria-label="Main">
+        <a class="bar-link" href="/live">Live</a>
+        <a class="bar-cta" href="/t/grasp-slip-01">Start annotating →</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="headline-wrap">
+        <Marquee />
+        <h1>Robots learn from human labels. <em>Physics checks them, Monad pays for them.</em></h1>
+      </div>
+    </section>
+
+    <section class="prose">
+      <p>Robots learn from labelled recordings: camera video together with sensor streams like joint torque and contact force. Someone has to say when the grasp failed, where the robot should have held, what was in the scene. Today that happens in a few labs, by a few people, at robotics-lab rates.</p>
+      <p>Opening it to everyone has two blockers. You cannot trust a stranger’s label, and you cannot pay thousands of people a few cents each through a bank.</p>
+      <p>So make the label checkable by physics, and settle each one on a chain fast and cheap enough to pay five cents. The card on the right plays one clip: the arm grips the cup, the cup slips, and the contact force drops. Follow that one moment from the simulator to a contributor’s wallet.</p>
+    </section>
+
+    <section class="plan">
+      <ol>
+        {plan.map((item, i) => (
+          <li><span class="num">{i + 1}</span><span>{item}</span></li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="prose">
+      <p>Trace is a data economy on Monad. Its first market is annotation for physical AI. An engineer exports clips from <a class="inline" href="https://github.com/RudranshG07/pyros" target="_blank" rel="noopener">Pyros</a>, funds a task with USDC, and commits a merkle root over the clips’ physics logs before anyone plays.</p>
+      <p>A contributor opens the task link on a phone and gets a burner address with no setup. They watch a ten-second clip with synced torque and contact-force graphs, scrub to the moment the grasp failed, and mark it.</p>
+      <p>Three Pyros verifier nodes, each with its own key and TRACE stake, compare the mark with their copy of the physics log: within <em>0.15 s</em> passes. Each signs an EIP-712 attestation. With two matching signatures a relayer calls the registry, which pays USDC from escrow, mints dataset tokens and updates reputation in one transaction.</p>
+      <p>A miss comes back with a reason that teaches: <em>you marked 3.71 s; the cup lost contact at 3.21 s</em>. When a lab licenses the dataset, the fee is split across every token holder.</p>
+    </section>
+
+    <section class="params">
+      <h2>Parameters, as designed</h2>
+      <dl>
+        {parameters.map(([name, value, note]) => (
+          <div class="param"><dt>{name}</dt><dd class="param-value">{value}</dd><dd class="param-note">{note}</dd></div>
+        ))}
+      </dl>
+      <p class="fine">Values from the build spec. Tolerance gets tuned against the team’s own scores before the demo.</p>
+    </section>
+
+    <section class="quote">
+      <blockquote>Physics is the reviewer. Monad is the payroll.</blockquote>
+    </section>
+
+    <section class="versus">
+      <h2>Same annotation, two worlds</h2>
+      <div class="versus-grid">
+        <div class="versus-col">
+          <span class="versus-label">On a labelling platform</span>
+          <ol>{without.map((line) => <li>{line}</li>)}</ol>
+        </div>
+        <div class="versus-col versus-col-lit">
+          <span class="versus-label">On Trace</span>
+          <ol>{withTrace.map((line) => <li>{line}</li>)}</ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="cards">
+      <h2>What we did</h2>
+      <div class="card-grid">
+        {cards.map((card) => (
+          <article class="ecard"><h3>{card.title}</h3><p>{card.body}</p></article>
+        ))}
+      </div>
+    </section>
+
+    <section class="status">
+      <h2>Status</h2>
+      <p>Being built for Monad Blitz Mumbai, 4 November 2026: the contracts, three verifier nodes with a coordinator and relayer, the clip exporter, the annotation page and a live stats panel. The demo runs on Monad testnet with test USDC, on simulated clips only.</p>
+      <p>Today all three verifier nodes run on one machine, so two of three holds at the protocol level, not yet at the operator level. Slashing is held by the owner until a challenge window exists. Pyros existed before the event. Revenue-sharing tokens and paying contributors both need legal review before mainnet.</p>
+      <a class="cta" href="/live">Watch the live panel →</a>
+    </section>
+
+    <section class="refs">
+      <h2>Built on</h2>
+      <p>Clips and physics logs come from <a href="https://github.com/RudranshG07/pyros" target="_blank" rel="noopener">Pyros</a> and MuJoCo. Verdicts are <a href="https://eips.ethereum.org/EIPS/eip-712" target="_blank" rel="noopener">EIP-712</a> attestations. Escrow, payouts, dataset tokens and licensing run on <a href="https://www.monad.xyz" target="_blank" rel="noopener">Monad</a>. A failure moment passes when <em>|t̂ − t*| ≤ 0.15 s</em> and scores <em>10000 · (1 − |dt| / 0.15)</em>.</p>
+    </section>
+
+    <footer>
+      <span class="dim">Verified by Pyros · Settled on Monad</span>
+      <a href="/live">Live</a>
+      <a href="/t/grasp-slip-01">Annotate</a>
+    </footer>
+  </main>
+</BaseLayout>

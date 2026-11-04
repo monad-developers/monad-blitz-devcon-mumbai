@@ -1,0 +1,11 @@
+.local/
+.DS_Store
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+contracts/lib/
+contracts/deployments/31337.json
+clips/**/physics.json
+.env*
+!.env*.example
+.testnet/
