@@ -1,0 +1,5 @@
+# Railway only needs the web app. Keep the top-level contracts folder (and its .env key) local.
+/contracts/
+/.claude/
+/.next/
+node_modules/

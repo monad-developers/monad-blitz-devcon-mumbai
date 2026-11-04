@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+:root {
+  /* Light Monad palette, matching the landing page. */
+  --background: #ffffff;
+  --surface: #f8f6ff;
+  --surface-2: #efeafe;
+  --border: rgba(14, 9, 28, 0.12);
+  --foreground: #0e091c;
+  --muted: #6b6585;
+  --accent: #6e54ff;
+  --accent-strong: #4f35d2;
+  --win: #12a46b;
+  --lose: #e0466b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-win: var(--win);
+  --color-lose: var(--lose);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-roboto-mono);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background:
+    radial-gradient(ellipse 80% 45% at 50% -10%, rgb(110 84 255 / 0.12), transparent 70%),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+@layer components {
+  .card {
+    @apply border border-border bg-background/80 p-5 backdrop-blur-sm;
+  }
+  .input {
+    @apply w-full min-w-0 border border-border bg-background px-3 py-2.5 font-mono text-base outline-none focus:border-accent;
+  }
+  .btn-primary {
+    @apply bg-accent px-4 py-3 font-mono text-xs uppercase tracking-[0.08em] text-white transition hover:bg-foreground active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .btn-secondary {
+    @apply border border-foreground/15 bg-background px-4 py-3 font-mono text-xs uppercase tracking-[0.08em] text-foreground/80 transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40;
+  }
+}
+
+.hex {
+  clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%);
+}
+
+@keyframes spin-glow {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.6);
+  }
+}
+
+.hex-rolling {
+  animation: spin-glow 0.5s ease-in-out infinite;
+}
