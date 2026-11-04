@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -124,6 +125,7 @@ private fun TapMateApp() {
                 is LinkEvent.Message -> {
                     val parts = event.text.split("|")
                     val opponent = game.localSide?.flip()
+                    game.advanceClock(SystemClock.elapsedRealtime())
                     when (parts[0]) {
                         "M" -> game.playRemote(
                             Square.valueOf(parts[1]),
@@ -169,16 +171,16 @@ private fun TapMateApp() {
 
     LaunchedEffect(game, screen) {
         if (screen != Screen.GAME) return@LaunchedEffect
-        var last = SystemClock.elapsedRealtime()
         while (game.end == null) {
-            delay(100)
-            val now = SystemClock.elapsedRealtime()
-            if (game.tick(now - last) && game.localSide != null) link.send("F")
-            last = now
+            if (game.advanceClock(SystemClock.elapsedRealtime()) && game.localSide != null) link.send("F")
             redraw()
+            delay(100)
         }
         redraw()
     }
+
+    // A stray back gesture must not end a live game.
+    BackHandler(enabled = screen == Screen.GAME && game.end == null) { }
 
     Box(Modifier.fillMaxSize().background(Background).safeDrawingPadding().padding(12.dp)) {
         when (screen) {
@@ -199,6 +201,9 @@ private fun TapMateApp() {
                 peerGone = peerGone,
                 tick = revision,
                 onSquare = { square ->
+                    // Charge the time used so far before the turn can change. This can also end the game.
+                    val flagFell = game.advanceClock(SystemClock.elapsedRealtime())
+                    if (flagFell && game.localSide != null) link.send("F")
                     if (game.canMove) {
                         val current = selected
                         when {

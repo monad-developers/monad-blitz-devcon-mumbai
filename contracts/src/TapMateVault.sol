@@ -217,16 +217,18 @@ contract TapMateVault is EIP712 {
 
     /// @notice The cheater signed `w` using a chip that a different game already consumed.
     /// @dev The reward, capped at one stake, goes to the opponent named in `w`. The rest is burned.
+    ///      Chips retired by a withdrawal can no longer be reported, so an old conflict cannot take a new bond.
     function reportDoubleSpend(Wager calldata w, bytes calldata cheaterSig, bool cheaterIsPlayer0) external {
         (address cheater, uint32 chip, address victim) =
             cheaterIsPlayer0 ? (w.player0, w.chip0, w.player1) : (w.player1, w.chip1, w.player0);
         bytes32 gameId = _hashWager(w);
         _requireSig(cheater, gameId, cheaterSig);
+        Vault storage v = vaults[cheater];
+        if (chip < v.chipStart || chip >= v.chipEnd) revert ChipOutOfRange();
         bytes32 spentIn = consumedBy[cheater][chip];
         if (spentIn == bytes32(0) || spentIn == gameId) revert NoConflict();
         if (slashed[cheater][chip]) revert AlreadySlashed();
         slashed[cheater][chip] = true;
-        Vault storage v = vaults[cheater];
         uint256 amount = BOND_RATIO * CHIP;
         if (amount > v.bond) amount = v.bond;
         v.bond -= uint96(amount);

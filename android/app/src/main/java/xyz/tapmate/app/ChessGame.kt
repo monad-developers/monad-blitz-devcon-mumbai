@@ -17,9 +17,14 @@ data class GameEnd(val winner: Side?, val reason: EndReason)
  *
  * @param localSide the side this phone plays, or null when both players share one phone.
  */
-class ChessGame(val localSide: Side? = null, clockMillis: Long = 60_000L) {
-    private val board = Board()
+class ChessGame(
+    val localSide: Side? = null,
+    clockMillis: Long = 60_000L,
+    startFen: String? = null,
+) {
+    private val board = Board().apply { startFen?.let { loadFromFen(it) } }
     private var overdueMillis = 0L
+    private var lastClockAt: Long? = null
 
     var whiteMillis = clockMillis
         private set
@@ -74,13 +79,18 @@ class ChessGame(val localSide: Side? = null, clockMillis: Long = 60_000L) {
     }
 
     /**
-     * Charges elapsed time to the side to move. The clock starts after White's first move.
+     * Charges the time since the last call to the side to move, and returns true if this phone's own
+     * flag just fell. Call this with the same timestamp right before applying a move, so the time is
+     * charged to the player who used it. The clock starts after White's first move.
      *
      * A phone only calls its own flag immediately. For the opponent it allows a grace period, so a
      * move still in transit is not treated as a timeout, and a vanished opponent still loses on time.
      */
-    fun tick(elapsedMillis: Long): Boolean {
-        if (end != null || ply == 0) return false
+    fun advanceClock(nowMillis: Long): Boolean {
+        val previous = lastClockAt
+        lastClockAt = nowMillis
+        if (end != null || ply == 0 || previous == null) return false
+        val elapsedMillis = nowMillis - previous
         val mover = sideToMove
         val left = clockOf(mover) - elapsedMillis
         setClock(mover, left.coerceAtLeast(0))
@@ -90,7 +100,7 @@ class ChessGame(val localSide: Side? = null, clockMillis: Long = 60_000L) {
             overdueMillis += elapsedMillis
             if (overdueMillis < REMOTE_FLAG_GRACE_MILLIS) return false
         }
-        end = GameEnd(mover.flip(), EndReason.TIMEOUT)
+        endOnTime(mover)
         return isLocalFlag
     }
 
@@ -101,11 +111,21 @@ class ChessGame(val localSide: Side? = null, clockMillis: Long = 60_000L) {
     fun flagFell(side: Side) {
         if (end == null) {
             setClock(side, 0)
-            end = GameEnd(side.flip(), EndReason.TIMEOUT)
+            endOnTime(side)
         }
     }
 
     fun clockOf(side: Side): Long = if (side == Side.WHITE) whiteMillis else blackMillis
+
+    /** Running out of time is a draw when the opponent has only a king and so can never checkmate. */
+    private fun endOnTime(flagged: Side) {
+        val opponent = flagged.flip()
+        val canMate = Square.values().any { square ->
+            val piece = board.getPiece(square)
+            piece != Piece.NONE && piece.pieceSide == opponent && piece.pieceType != PieceType.KING
+        }
+        end = if (canMate) GameEnd(opponent, EndReason.TIMEOUT) else GameEnd(null, EndReason.DRAW)
+    }
 
     private fun setClock(side: Side, millis: Long) {
         if (side == Side.WHITE) whiteMillis = millis else blackMillis = millis

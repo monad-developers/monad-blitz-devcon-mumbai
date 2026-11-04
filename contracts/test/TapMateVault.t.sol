@@ -271,6 +271,28 @@ contract TapMateVaultTest is Test {
         v.reportDoubleSpend(w, sig, false);
     }
 
+    function test_report_oldConflictCannotTakeNewBond() public {
+        TapMateVault.Wager memory first = wager(p0, p1, 0, 0, true);
+        (K memory lo, K memory hi) = p0.a < p2.a ? (p0, p2) : (p2, p0);
+        TapMateVault.Wager memory conflict = wager(lo, hi, 0, 0, true);
+        settle(first, p0, p1, resultOf(first, p1, p0));
+        bytes memory cheaterSig = sign(p0, v.hashWager(conflict));
+
+        // The cheater exits and funds a new bond.
+        vm.warp(uint256(LOCK) + D + P + 1);
+        vm.prank(p0.a);
+        v.withdraw(payable(p0.a));
+        LOCK = uint40(block.timestamp + 7 days);
+        fund(p0, 1);
+        (,,,, uint96 bondBefore) = v.vaults(p0.a);
+
+        bool cheaterIsLow = lo.a == p0.a;
+        vm.expectRevert(TapMateVault.ChipOutOfRange.selector);
+        v.reportDoubleSpend(conflict, cheaterSig, cheaterIsLow);
+        (,,,, uint96 bondAfter) = v.vaults(p0.a);
+        assertEq(bondAfter, bondBefore);
+    }
+
     // ---------- claim, contest, forfeit ----------
 
     function test_claim_silentOpponentForfeits() public {
